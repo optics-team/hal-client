@@ -2,11 +2,9 @@ import { Form } from './Form';
 import { Resource } from './Resource';
 import { localStorage } from './__mocks__/localStorage';
 
-declare var require: any;
-const fetch = require('jest-fetch-mock');
-
 declare const global: any;
-Object.assign(global, { localStorage, fetch });
+declare const require: any;
+Object.assign(global, { fetch: require('jest-fetch-mock') });
 
 const schema = {
   properties: {
@@ -132,6 +130,30 @@ describe('#submit()', () => {
         method: 'DELETE',
         headers: jasmine.any(Object)
       });
+    });
+  });
+
+  it('merges `config` when fetching', async () => {
+    let config = {
+      requestHeaders: {
+        Authorization: 'Bearer test-token'
+      }
+    };
+
+    let form = new Form({
+      name: 'test',
+      href: '/test/12',
+      method: 'DELETE'
+    }, config);
+
+    await form.submit();
+
+    expect(fetch).toHaveBeenLastCalledWith('/test/12', {
+      method: 'DELETE'
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer test-token'
+      }
     });
   });
 })

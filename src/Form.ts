@@ -1,8 +1,8 @@
 import * as uriTemplate from 'uri-templates';
+import { defaultsDeep } from 'lodash';
 import { equals } from 'ramda';
 import { Resource } from './Resource';
 import { Params } from './Link';
-import { defaultRequestOptions } from './defaultRequestOptions';
 import { handleResponse } from './handleResponse';
 
 export interface Data {
@@ -35,8 +35,18 @@ export interface RawForm {
   schema?: Schema
 }
 
+export interface FormConfig {
+  requestHeaders: Headers
+}
+
+const DEFAULT_REQUEST_OPTIONS = {
+  headers: {
+    'Content-Type': 'application/json'
+  }
+};
+
 export class Form {
-  constructor(protected _form: RawForm) { }
+  constructor(protected _form: RawForm, public config: Partial<FormConfig> = {}) { }
 
   diff(data: Data = {}, original: Data = {}): Data {
     let diff: Data = {};
@@ -65,14 +75,20 @@ export class Form {
 
     let uri = uriTemplate(this._form.href).fillFromObject(params || {});
 
-    options = {
-      ...defaultRequestOptions(options),
-      method: this._form.method,
-    };
-
-    if (data) {
-      options.body = JSON.stringify(data);
-    }
+    options = defaultsDeep(
+      {},
+      DEFAULT_REQUEST_OPTIONS,
+      options,
+      {
+        method: this._form.method,
+      },
+      this.config && {
+        headers: this.config.requestHeaders
+      },
+      data && {
+        body: JSON.stringify(data)
+      }
+    );
 
     return fetch(uri, options)
       .then(handleResponse);

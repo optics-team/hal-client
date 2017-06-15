@@ -22,9 +22,7 @@ describe('when response is empty', () => {
 
     var resource = await handleResponse(response);
 
-    expect(resource.headers).toEqual({
-      Location: '/test/12'
-    });
+    expect(resource.config.headers.get('Location')).toEqual('/test/12');
 
     expect(resource.properties).toEqual({});
   });

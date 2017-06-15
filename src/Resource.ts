@@ -18,6 +18,11 @@ export interface RawResource {
   }
 }
 
+export interface ResourceConfig {
+  headers: Headers,
+  requestHeaders: Headers
+}
+
 export class Resource {
   public readonly properties: {
     [key: string]: any
@@ -39,11 +44,7 @@ export class Resource {
     [rel: string]: RawResource | RawResource[]
   }
 
-  public readonly headers: {
-    Location: string | null
-  }
-
-  constructor(resource: RawResource, headers?: Headers) {
+  constructor(resource: RawResource, public config: Partial<ResourceConfig> = {}) {
     this.properties = pickBy((value, key) => key[0] !== '_', resource);
 
     this._links = resource._links || {};
@@ -57,12 +58,6 @@ export class Resource {
         var stripped = key.slice(1, key.length);
         this.meta[stripped] = resource[key];
       });
-
-    if (headers) {
-      this.headers = {
-        Location: headers.get('Location')
-      }
-    }
   }
 
   protected _hasIn = (type: '_links' | '_forms' | '_embedded') =>
@@ -97,7 +92,7 @@ export class Resource {
       throw Error(`Multiple Links with rel '${rel}', use 'linkNamed(rel, name)' instead`);
     }
 
-    return new Link(link);
+    return new Link(link, this.config);
   }
 
   linkNamed = (rel: string, name: string): Link => {
@@ -107,10 +102,10 @@ export class Resource {
 
     var links = this._links[rel];
     if (!(links instanceof Array)) {
-      return new Link(links);
+      return new Link(links, this.config);
     }
 
-    return new Link(links.find(link => link.name === name) as RawLink);
+    return new Link(links.find(link => link.name === name) as RawLink, this.config);
   }
 
   hasForm = this._hasIn('_forms');
@@ -126,7 +121,7 @@ export class Resource {
       throw Error(`Multiple Forms with rel '${rel}', use 'formNamed(rel, name)' instead`);
     }
 
-    return new Form(form);
+    return new Form(form, this.config);
   }
 
   formNamed = (rel: string, name: string): Form => {
@@ -136,10 +131,10 @@ export class Resource {
 
     var forms = this._forms[rel];
     if (!(forms instanceof Array)) {
-      return new Form(forms);
+      return new Form(forms, this.config);
     }
 
-    return new Form(forms.find(form => form.name === name) as RawForm);
+    return new Form(forms.find(form => form.name === name) as RawForm, this.config);
   }
 
   hasEmbedded = this._hasIn('_embedded');
@@ -154,6 +149,6 @@ export class Resource {
       return embedded.map(embed => new Resource(embed));
     }
 
-    return new Resource(embedded);
+    return new Resource(embedded, this.config);
   }
 }

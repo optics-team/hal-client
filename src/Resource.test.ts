@@ -74,11 +74,13 @@ describe('constructor', () => {
   });
 
   it('extracts Location header if set', () => {
-    var resource = new Resource({}, new Headers({
-      Location: '/test/12'
-    }));
+    var resource = new Resource({}, {
+      headers: new Headers({
+        Location: '/test/12'
+      })
+    });
 
-    expect(resource.headers.Location).toBe('/test/12');
+    expect(resource.config.headers.get('Location')).toBe('/test/12');
   });
 });
 
@@ -104,7 +106,7 @@ describe('#link()', () => {
     var link = resource.link('self');
 
     expect(link).toBeInstanceOf(Link);
-    expect(link).toEqual(new Link(_links.self));
+    expect(link).toEqual(new Link(_links.self, {}));
   });
 
   it('throws if `rel` does not exist', () => {
@@ -121,14 +123,14 @@ describe('#linkNamed()', () => {
     var link = resource.linkNamed('groups', 'primary');
 
     expect(link).toBeInstanceOf(Link);
-    expect(link).toEqual(new Link(_links.groups[1]));
+    expect(link).toEqual(new Link(_links.groups[1], {}));
   });
 
   it('returns Link instances matching `rel` and `name` when only one exists', () => {
     var link = resource.linkNamed('profile', 'default');
 
     expect(link).toBeInstanceOf(Link);
-    expect(link).toEqual(new Link(_links.profile));
+    expect(link).toEqual(new Link(_links.profile, {}));
   });
 
   it('throws if `rel:name` does not exist', () => {
@@ -158,7 +160,7 @@ describe('#form()', () => {
     var form = resource.form('system');
 
     expect(form).toBeInstanceOf(Form);
-    expect(form).toEqual(new Form(_forms.system));
+    expect(form).toEqual(new Form(_forms.system, {}));
   });
 
   it('throws if `rel` does not exist', () => {
@@ -175,14 +177,14 @@ describe('#formNamed()', () => {
     var form = resource.formNamed('self', 'delete');
 
     expect(form).toBeInstanceOf(Form);
-    expect(form).toEqual(new Form(_forms.self[1]));
+    expect(form).toEqual(new Form(_forms.self[1], {}));
   });
 
   it('returns Form instances matching `rel` and `name` when only one exists', () => {
     var form = resource.formNamed('system', 'backup');
 
     expect(form).toBeInstanceOf(Form);
-    expect(form).toEqual(new Form(_forms.system));
+    expect(form).toEqual(new Form(_forms.system, {}));
   });
 
   it('throws if `rel:name` does not exist', () => {
