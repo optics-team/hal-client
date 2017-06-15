@@ -1,12 +1,12 @@
 {
-  "name": "hal-client",
+  "name": "@optics/hal-client",
   "version": "1.0.0",
-  "description": "Client library for accessing HAL-compliant HTTP APIs",
+  "description": "JavaScript client library for working with HAL-compliant HTTP APIs",
   "main": "dist/index.js",
   "scripts": {
     "test": "jest"
   },
-  "author": "Fountainhead Technologies Ltd.",
+  "author": "Warren Seymour <warren@fountainhead.tech>",
   "license": "BSD-3-Clause",
   "devDependencies": {
     "@types/jest": "^19.2.4",
