@@ -21,6 +21,14 @@ const schema = {
   required: ['name', 'age', 'enabled']
 };
 
+it('exposes Link properties', () => {
+  let form = new Form({
+    href: '/test/100'
+  });
+
+  expect(form.href).toBe('/test/100');
+});
+
 describe('#submit()', () => {
   describe('when method is `PATCH`', () => {
     let form = new Form({

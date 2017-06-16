@@ -5,6 +5,14 @@ declare const require: any;
 declare const global: any;
 Object.assign(global, { fetch: require('jest-fetch-mock') });
 
+it('exposes Link properties', () => {
+  let link = new Link({
+    href: '/test/100'
+  });
+
+  expect(link.href).toBe('/test/100');
+});
+
 describe('#fetch()', () => {
   let link = new Link({
     href: '/test/{id}'

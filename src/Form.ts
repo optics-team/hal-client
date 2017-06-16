@@ -45,8 +45,10 @@ const DEFAULT_REQUEST_OPTIONS = {
   }
 };
 
-export class Form {
-  constructor(protected _form: RawForm, public config: Partial<FormConfig> = {}) { }
+export class Form implements RawForm {
+  constructor(protected _form: RawForm, public config: Partial<FormConfig> = {}) {
+    Object.assign(this, _form);
+  }
 
   diff(data: Data = {}, original: Data = {}): Data {
     let diff: Data = {};
@@ -93,4 +95,9 @@ export class Form {
     return fetch(uri, options)
       .then(handleResponse);
   }
+
+  name: string;
+  href: string;
+  method: string;
+  schema?: Schema;
 }

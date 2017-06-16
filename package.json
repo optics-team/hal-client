@@ -4,6 +4,9 @@
   "description": "JavaScript client library for working with HAL-compliant HTTP APIs",
   "main": "dist/index.js",
   "scripts": {
+    "prebuild": "npm run clean",
+    "build": "tsc",
+    "clean": "rm -rf dist",
     "test": "jest"
   },
   "author": "Warren Seymour <warren@fountainhead.tech>",

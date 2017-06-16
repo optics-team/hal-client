@@ -23,8 +23,10 @@ const DEFAULT_REQUEST_OPTIONS = {
   }
 };
 
-export class Link {
-  constructor(protected _link: RawLink, public config: Partial<LinkConfig> = {}) { }
+export class Link implements RawLink {
+  constructor(protected _link: RawLink, public config: Partial<LinkConfig> = {}) {
+    Object.assign(this, _link);
+  }
 
   fetch<T extends Resource>(params: Params = {}, options?: RequestInit): Promise<T> {
     let uri = uriTemplate(this._link.href).fillFromObject(params);
@@ -36,4 +38,8 @@ export class Link {
     return fetch(uri, options)
       .then(resp => handleResponse(resp, this.config));
   }
+
+  href: string;
+  templated?: boolean;
+  name?: string;
 }
