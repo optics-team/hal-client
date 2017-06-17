@@ -146,7 +146,7 @@ export class Resource {
 
     var embedded = this._embedded[rel];
     if (embedded instanceof Array) {
-      return embedded.map(embed => new Resource(embed));
+      return embedded.map(embed => new Resource(embed, this.config));
     }
 
     return new Resource(embedded, this.config);

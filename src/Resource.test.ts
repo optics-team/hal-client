@@ -57,7 +57,11 @@ var resource = new Resource({
   _links,
   _forms,
   _embedded
-});
+}, {
+    requestHeaders: {
+      Authorization: 'Bearer test-token'
+    }
+  });
 
 describe('constructor', () => {
   it('extracts raw object to properties, meta-properties, links, forms and embeds', () => {
@@ -106,7 +110,7 @@ describe('#link()', () => {
     var link = resource.link('self');
 
     expect(link).toBeInstanceOf(Link);
-    expect(link).toEqual(new Link(_links.self, {}));
+    expect(link).toEqual(new Link(_links.self, resource.config));
   });
 
   it('throws if `rel` does not exist', () => {
@@ -123,14 +127,14 @@ describe('#linkNamed()', () => {
     var link = resource.linkNamed('groups', 'primary');
 
     expect(link).toBeInstanceOf(Link);
-    expect(link).toEqual(new Link(_links.groups[1], {}));
+    expect(link).toEqual(new Link(_links.groups[1], resource.config));
   });
 
   it('returns Link instances matching `rel` and `name` when only one exists', () => {
     var link = resource.linkNamed('profile', 'default');
 
     expect(link).toBeInstanceOf(Link);
-    expect(link).toEqual(new Link(_links.profile, {}));
+    expect(link).toEqual(new Link(_links.profile, resource.config));
   });
 
   it('throws if `rel:name` does not exist', () => {
@@ -160,7 +164,7 @@ describe('#form()', () => {
     var form = resource.form('system');
 
     expect(form).toBeInstanceOf(Form);
-    expect(form).toEqual(new Form(_forms.system, {}));
+    expect(form).toEqual(new Form(_forms.system, resource.config));
   });
 
   it('throws if `rel` does not exist', () => {
@@ -177,14 +181,14 @@ describe('#formNamed()', () => {
     var form = resource.formNamed('self', 'delete');
 
     expect(form).toBeInstanceOf(Form);
-    expect(form).toEqual(new Form(_forms.self[1], {}));
+    expect(form).toEqual(new Form(_forms.self[1], resource.config));
   });
 
   it('returns Form instances matching `rel` and `name` when only one exists', () => {
     var form = resource.formNamed('system', 'backup');
 
     expect(form).toBeInstanceOf(Form);
-    expect(form).toEqual(new Form(_forms.system, {}));
+    expect(form).toEqual(new Form(_forms.system, resource.config));
   });
 
   it('throws if `rel:name` does not exist', () => {
@@ -204,6 +208,8 @@ describe('#embedded()', () => {
     var manager = resource.embedded('manager') as Resource;
     expect(manager).toBeInstanceOf(Resource);
     expect(manager.properties).toEqual(_embedded.manager);
+
+    expect(manager.config).toEqual(resource.config);
   });
 
   it('returns an array of embdedded Resources matching `rel`', () => {
@@ -212,5 +218,7 @@ describe('#embedded()', () => {
 
     expect(starred[0]).toBeInstanceOf(Resource);
     expect(starred[0].properties).toEqual(_embedded.starred[0]);
+
+    expect(starred[0].config).toEqual(resource.config);
   });
 });
