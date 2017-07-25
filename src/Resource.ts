@@ -60,29 +60,32 @@ export class Resource {
       });
   }
 
-  protected _hasIn = (type: '_links' | '_forms' | '_embedded') =>
-    (rel: string): boolean => {
-      return rel in this[type];
+  protected _hasIn(type: '_links' | '_forms' | '_embedded', rel: string) {
+    return rel in this[type];
+  }
+
+  protected _hasNamedIn(type: '_links' | '_forms', rel: string, name: string) {
+    if (!this._hasIn(type, rel)) {
+      return false;
     }
 
-  protected _hasNamedIn = (type: '_links' | '_forms') =>
-    (rel: string, name: string): boolean => {
-      if (!this._hasIn(type)(rel)) {
-        return false;
-      }
-
-      var items = this[type][rel];
-      if (items instanceof Array) {
-        return !!(items as Array<RawLink | RawForm>).find(item => item.name === name);
-      }
-
-      return items.name === name;
+    var items = this[type][rel];
+    if (items instanceof Array) {
+      return !!(items as Array<RawLink | RawForm>).find(item => item.name === name);
     }
 
-  hasLink = this._hasIn('_links');
-  hasLinkNamed = this._hasNamedIn('_links');
+    return items.name === name;
+  }
 
-  link = (rel: string): Link => {
+  hasLink(rel: string) {
+    return this._hasIn('_links', rel);
+  }
+
+  hasLinkNamed(rel: string, name: string) {
+    return this._hasNamedIn('_links', rel, name);
+  }
+
+  link(rel: string) {
     if (!this.hasLink(rel)) {
       throw Error(`Link '${rel}' does not exist`);
     }
@@ -95,7 +98,7 @@ export class Resource {
     return new Link(link, this.config);
   }
 
-  linkNamed = (rel: string, name: string): Link => {
+  linkNamed(rel: string, name: string) {
     if (!this.hasLinkNamed(rel, name)) {
       throw Error(`Link '${rel}:${name}' does not exist`);
     }
@@ -108,10 +111,15 @@ export class Resource {
     return new Link(links.find(link => link.name === name) as RawLink, this.config);
   }
 
-  hasForm = this._hasIn('_forms');
-  hasFormNamed = this._hasNamedIn('_forms');
+  hasForm(rel: string) {
+    return this._hasIn('_forms', rel);
+  }
 
-  form = (rel: string): Form => {
+  hasFormNamed(rel: string, name: string) {
+    return this._hasNamedIn('_forms', rel, name);
+  }
+
+  form(rel: string) {
     if (!this.hasForm(rel)) {
       throw Error(`Form '${rel}' does not exist`);
     }
@@ -124,7 +132,7 @@ export class Resource {
     return new Form(form, this.config);
   }
 
-  formNamed = (rel: string, name: string): Form => {
+  formNamed(rel: string, name: string) {
     if (!this.hasFormNamed(rel, name)) {
       throw Error(`Form '${rel}:${name}' does not exist`);
     }
@@ -137,9 +145,11 @@ export class Resource {
     return new Form(forms.find(form => form.name === name) as RawForm, this.config);
   }
 
-  hasEmbedded = this._hasIn('_embedded');
+  hasEmbedded(rel: string) {
+    return this._hasIn('_embedded', rel);
+  }
 
-  embedded = (rel: string): Resource | Resource[] => {
+  embedded(rel: string) {
     if (!this.hasEmbedded(rel)) {
       throw Error(`Embed '${rel}' does not exist`);
     }
