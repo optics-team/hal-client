@@ -50,7 +50,9 @@ export class Form implements RawForm {
     Object.assign(this, _form);
   }
 
-  diff(data: Data = {}, original: Data = {}): Data {
+  diff(data: Data = {}, schema?: Schema): Data {
+    const original = schema && schema.default || {};
+
     let diff: Data = {};
 
     Object.keys(data)
@@ -60,12 +62,20 @@ export class Form implements RawForm {
         }
       })
 
+    if (schema && schema.required) {
+      schema.required.forEach(requiredKey => {
+        if ((requiredKey in original) && !(requiredKey in diff)) {
+          diff[requiredKey] = original[requiredKey];
+        }
+      })
+    }
+
     return diff;
   }
 
   submit(data?: Data, params?: Params, options?: RequestInit): Promise<Resource> {
     if (this._form.method === 'PATCH') {
-      data = this.diff(data, this._form.schema && this._form.schema.default);
+      data = this.diff(data, this._form.schema);
     }
 
     if (this._form.method === 'POST' || this._form.method === 'PUT') {

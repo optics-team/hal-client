@@ -31,22 +31,44 @@ it('exposes Link properties', () => {
 
 describe('#submit()', () => {
   describe('when method is `PATCH`', () => {
-    let form = new Form({
-      name: 'test',
-      href: '/test/{id}',
-      method: 'PATCH',
-      schema: {
-        ...schema,
-        default: {
-          name: 'Test Person',
-          age: 35,
-          enabled: true
+    let form: Form;
+
+    beforeEach(() => {
+      form = new Form({
+        name: 'test',
+        href: '/test/{id}',
+        method: 'PATCH',
+        schema: {
+          ...schema,
+          required: [],
+          default: {
+            name: 'Test Person',
+            age: 35,
+            enabled: true
+          }
         }
-      }
-    });
+      });
+    })
 
     it('only submits values which are different from schema defaults', async () => {
       await form.submit({ enabled: false }, { id: 12 });
+
+      expect(fetch).toHaveBeenLastCalledWith('/test/12', {
+        method: 'PATCH',
+        body: JSON.stringify({ enabled: false }),
+        headers: jasmine.any(Object)
+      });
+    });
+
+    it('includes properties that are in `required` and `default`, even when absent from payload', async () => {
+      Object.assign(form.schema, {
+        required: ['enabled'],
+        default: {
+          enabled: false
+        }
+      });
+
+      await form.submit(undefined, { id: 12 });
 
       expect(fetch).toHaveBeenLastCalledWith('/test/12', {
         method: 'PATCH',
