@@ -17,9 +17,9 @@
     "@types/lodash": "^4.14.64",
     "@types/ramda": "0.0.9",
     "@types/uri-templates": "^0.1.28",
-    "jest": "^20.0.1",
+    "jest": "^21.2.1",
     "jest-fetch-mock": "^1.1.1",
-    "ts-jest": "^20.0.5",
+    "ts-jest": "^21.0.1",
     "typescript": "^2.3.2"
   },
   "dependencies": {
@@ -31,6 +31,7 @@
     "transform": {
       ".ts": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
+    "mapCoverage": true,
     "testRegex": "(src/.*\\.test\\.ts)$",
     "collectCoverageFrom": [
       "src/**/*"
