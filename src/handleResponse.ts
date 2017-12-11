@@ -1,13 +1,32 @@
 import { Resource, ResourceConfig } from './Resource';
 
-export const handleResponse = (resp: Response, config: Partial<ResourceConfig> = {}): Promise<Resource> => {
-  if (resp.status >= 400 && resp.status < 600) {
-    throw new Error(resp.status.toString());
-  }
+export class HTTPError extends Error {
+  status: number;
+  statusText: string;
+  body: string | {};
 
+  constructor(statusText: string, status: number, body: string | {}) {
+    super(statusText);
+    Object.assign(this, { statusText, status, body });
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+export const handleResponse = (resp: Response, config: Partial<ResourceConfig> = {}): Promise<Resource> => {
   return resp.text()
-    .then(text => new Resource(text ? JSON.parse(text) : {}, {
-      ...config,
-      headers: resp.headers
-    }));
+    .then(text => {
+      let body;
+      try {
+        body = JSON.parse(text);
+      } catch (e) { }
+
+      if (resp.status >= 400 && resp.status < 600) {
+        throw new HTTPError(resp.statusText, resp.status, body);
+      }
+
+      return new Resource(body || {}, {
+        ...config,
+        headers: resp.headers
+      });
+    });
 }

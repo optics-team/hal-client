@@ -1,14 +1,43 @@
-import { handleResponse } from './handleResponse';
+import { handleResponse, HTTPError } from './handleResponse';
 import { Resource } from './Resource';
 import 'whatwg-fetch';
 
 describe('when response contains an error code', () => {
-  it('throws an error containing status code', () => {
-    var response = new Response(null, {
-      status: 401
+  it('rejects with an error containing status code and response body', () => {
+    const body = {
+      message: 'whoops',
+      attributes: {
+        foo: 'bar'
+      }
+    };
+
+    var response = new Response(JSON.stringify(body), {
+      status: 422,
+      statusText: 'Unprocessable Entity'
     });
 
-    expect(() => handleResponse(response)).toThrow('401');
+    return handleResponse(response)
+      .catch((err: HTTPError) => {
+        expect(err.message).toEqual('Unprocessable Entity');
+        expect(err.status).toEqual(422);
+        expect(err.body).toEqual(body);
+      });
+  });
+
+  it('rejects with an error containing a plain string', () => {
+    const body = 'whoops';
+
+    var response = new Response(JSON.stringify(body), {
+      status: 422,
+      statusText: 'Unprocessable Entity'
+    });
+
+    return handleResponse(response)
+      .catch((err: HTTPError) => {
+        expect(err.message).toEqual('Unprocessable Entity');
+        expect(err.status).toEqual(422);
+        expect(err.body).toEqual(body);
+      });
   });
 });
 
