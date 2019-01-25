@@ -1,6 +1,48 @@
-import { pickBy, map } from 'ramda';
 import { Link, RawLink } from './Link';
 import { Form, RawForm } from './Form';
+
+/**
+ * Returns the type of a property named `K` from type `U` if it has been defined
+ * on `U`, otherwise return the type of the same property from type `T`.
+ *
+ * This is the type-system equivalent of something like:
+ * ```
+ *   const foo = options && options.foo || defaults.foo
+ * ```
+ */
+type Default<T, U extends Partial<T>, K extends keyof T> =
+  null extends U[K] ? T[K] : U[K];
+
+type Properties<M extends PartialResourceModel> =
+  Default<ResourceModel, M, 'properties'>;
+
+type Meta<M extends PartialResourceModel> =
+  Default<ResourceModel, M, 'meta'>;
+
+type Embedded<M extends PartialResourceModel> =
+  Default<ResourceModel, M, 'embedded'>;
+
+type EmbeddedKey<M extends PartialResourceModel> =
+  keyof Embedded<M>;
+
+type EmbeddedValue<M extends PartialResourceModel, K extends EmbeddedKey<M>> =
+  Embedded<M>[K];
+
+export interface ResourceModel {
+  properties: {
+    [key: string]: any
+  }
+
+  meta: {
+    [key: string]: any
+  },
+
+  embedded: {
+    [key: string]: Resource | Resource[]
+  }
+}
+
+type PartialResourceModel = Partial<ResourceModel>;
 
 export interface RawResource {
   [property: string]: any,
@@ -23,14 +65,9 @@ export interface ResourceConfig {
   requestHeaders: Headers
 }
 
-export class Resource {
-  public readonly properties: {
-    [key: string]: any
-  }
-
-  public readonly meta: {
-    [key: string]: any
-  }
+export class Resource<M extends PartialResourceModel = ResourceModel>{
+  public readonly properties: Properties<M>;
+  public readonly meta: Meta<M>;
 
   protected _links: {
     [rel: string]: RawLink | RawLink[]
@@ -41,27 +78,21 @@ export class Resource {
   }
 
   protected _embedded: {
-    [rel: string]: RawResource | RawResource[]
+    [rel in EmbeddedKey<M>]: RawResource | RawResource[]
   }
 
   constructor(resource: RawResource, public config: Partial<ResourceConfig> = {}) {
-    this.properties = pickBy((value, key) => key[0] !== '_', resource);
+    Object.assign(this, metaProperties(resource));
 
     this._links = resource._links || {};
     this._forms = resource._forms || {};
-    this._embedded = resource._embedded || {};
-
-    this.meta = {};
-    Object.keys(resource)
-      .filter(key => key[0] === '_')
-      .forEach(key => {
-        var stripped = key.slice(1, key.length);
-        this.meta[stripped] = resource[key];
-      });
+    this._embedded = resource._embedded || {} as any;
   }
 
-  protected _hasIn(type: '_links' | '_forms' | '_embedded', rel: string) {
-    return rel in this[type];
+  protected _hasIn(type: '_links' | '_forms', rel: string): boolean;
+  protected _hasIn(type: '_embedded', rel: EmbeddedKey<M>): boolean;
+  protected _hasIn(type: string, rel: any) {
+    return rel in this[type as keyof this];
   }
 
   protected _hasNamedIn(type: '_links' | '_forms', rel: string, name: string) {
@@ -145,20 +176,40 @@ export class Resource {
     return new Form(forms.find(form => form.name === name) as RawForm, this.config);
   }
 
-  hasEmbedded(rel: string) {
+  hasEmbedded(rel: EmbeddedKey<M>) {
     return this._hasIn('_embedded', rel);
   }
 
-  embedded(rel: string) {
+  embedded<K extends EmbeddedKey<M>>(rel: K): EmbeddedValue<M, K> {
     if (!this.hasEmbedded(rel)) {
       throw Error(`Embed '${rel}' does not exist`);
     }
 
     var embedded = this._embedded[rel];
     if (embedded instanceof Array) {
-      return embedded.map(embed => new Resource(embed, this.config));
+      return embedded.map(embed => new Resource(embed, this.config)) as any;
     }
 
-    return new Resource(embedded, this.config);
+    return new Resource(embedded, this.config) as any;
   }
+}
+
+const metaProperties = <M>(resource: RawResource) => {
+  const properties = {} as Properties<M>;
+  const meta = {} as Meta<M>;
+  const keys = Object.keys(resource);
+
+  let i = keys.length;
+  while (i--) {
+    const key = keys[i];
+
+    if (key[0] === '_') {
+      const metaKey = key.slice(1, key.length) as keyof Meta<M>;
+      meta[metaKey] = resource[key];
+    } else {
+      properties[key as keyof Properties<M>] = resource[key];
+    }
+  }
+
+  return { properties, meta };
 }
