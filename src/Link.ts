@@ -4,7 +4,9 @@ import { Resource, RawResource } from './Resource';
 import { handleResponse } from './handleResponse';
 
 export interface Params {
-  [key: string]: number | string;
+  [key: string]: string | {
+    [key: string]: string
+  }
 }
 
 export interface RawLink {
@@ -28,7 +30,7 @@ export class Link implements RawLink {
     Object.assign(this, _link);
   }
 
-  fetch<T extends Resource>(params: Params = {}, options?: RequestInit): Promise<T> {
+  fetch(params: Params = {}, options?: RequestInit): Promise<Resource> {
     let uri = uriTemplate(this._link.href).fillFromObject(params);
 
     options = defaultsDeep({}, DEFAULT_REQUEST_OPTIONS, options, this.config && {
