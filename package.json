@@ -33,7 +33,7 @@
     "jest-fetch-mock": "^1.1.1",
     "semantic-release": "^15.13.3",
     "ts-jest": "^21.0.1",
-    "typescript": "^2.3.2"
+    "typescript": "^3.2.4"
   },
   "dependencies": {
     "lodash.defaultsdeep": "^4.6.0",
